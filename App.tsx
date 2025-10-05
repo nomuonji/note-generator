@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { KeywordInputForm } from './components/KeywordInputForm';
 import { KeywordResults } from './components/KeywordResults';
@@ -12,7 +13,7 @@ import {
 import { KeywordGroup, GeneratedArticle, ThematicDirection, AppStatus } from './types';
 import { LoaderIcon } from './components/icons';
 
-const drawTextOnImage = (imageUrl: string, title: string): Promise<string> => {
+const drawTextOnImage = (imageUrl: string, text: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -29,31 +30,26 @@ const drawTextOnImage = (imageUrl: string, title: string): Promise<string> => {
 
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      const gradient = ctx.createLinearGradient(0, canvas.height, 0, canvas.height * 0.4);
-      gradient.addColorStop(0, 'rgba(0, 0, 0, 0.7)');
-      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = 'white';
-      const fontSize = 60;
-      ctx.font = `bold ${fontSize}px 'Hiragino Sans', 'Meiryo', 'sans-serif'`;
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'bottom';
+      // Pop font style with dark color
+      ctx.fillStyle = '#1F2937'; // Dark Slate Gray
+      const fontSize = 80;
+      // Use a more pop/catchy font like Comic Sans MS with fallbacks
+      ctx.font = `900 ${fontSize}px 'Comic Sans MS', 'Impact', sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
       
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-      ctx.shadowBlur = 10;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
+      // Add a subtle white stroke for better readability
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.lineWidth = 6;
+      ctx.lineJoin = 'round';
 
-      const padding = 50;
-      const maxWidth = canvas.width - (padding * 2);
-      const lineHeight = fontSize * 1.4;
+      const maxWidth = canvas.width * 0.85; // Use 85% of canvas width for text
+      const lineHeight = fontSize * 1.2;
 
+      // Word wrapping logic (character-based for Japanese)
       const lines: string[] = [];
       let currentLine = '';
-
-      for (const char of title) {
+      for (const char of text) {
         const testLine = currentLine + char;
         const metrics = ctx.measureText(testLine);
         if (metrics.width > maxWidth && currentLine.length > 0) {
@@ -65,19 +61,16 @@ const drawTextOnImage = (imageUrl: string, title: string): Promise<string> => {
       }
       lines.push(currentLine);
 
-      let y = canvas.height - padding - (lines.length > 1 ? (lines.length -1) * lineHeight / 2 : 0 );
-      
-      if(lines.length > 1) {
-          y -= (lines.length - 1) * lineHeight;
-      }
+      // Calculate starting Y to vertically center the text block
+      const totalTextHeight = (lines.length - 1) * lineHeight;
+      const startY = (canvas.height / 2) - (totalTextHeight / 2);
 
-
-      for(let i = 0; i < lines.length; i++){
-          let lineY = y + (i * lineHeight);
-          if (lines.length > 1) {
-            lineY = canvas.height - padding - ((lines.length -1 - i) * lineHeight)
-          }
-          ctx.fillText(lines[i].trim(), padding, lineY);
+      // Draw each line
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const y = startY + (i * lineHeight);
+        ctx.strokeText(line, canvas.width / 2, y); // Draw stroke first
+        ctx.fillText(line, canvas.width / 2, y);   // Then fill
       }
       
       resolve(canvas.toDataURL('image/jpeg', 0.9));
@@ -173,7 +166,7 @@ function App() {
     setError(null);
     try {
       const backgroundImageUrl = await generateThumbnailForArticle(article.title);
-      const finalImageUrl = await drawTextOnImage(backgroundImageUrl, article.title);
+      const finalImageUrl = await drawTextOnImage(backgroundImageUrl, article.thumbnailCatchphrase);
       setGeneratedArticles(prev => ({
         ...prev,
         [group.priority]: { ...article, thumbnailUrl: finalImageUrl },

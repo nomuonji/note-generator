@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { 
   KeywordGroup, 
@@ -315,11 +316,12 @@ export const generateArticleForGroup = async (blogConcept: string, group: Keywor
       **その他の指示:**
       *   **トーン＆マナー:** 記事の文体や一人称は、提供された「ブログコンセプト」に厳密に従ってください。
       *   **タイトル:** 記事のタイトルには、必ず「タイトルに含めるメインキーワード」('${mainKeywordForTitle}')を自然な形で含めてください。キャッチーでありながら、人間味のある言葉遣いを心がけてください。
-      *   **キーワードの組み込み:** 「ターゲットキーワード」を、見出し（##や###）や本文（特に見出しに入れるのがSEO的に望ましい）に不自然にならないように、文脈に合わせて表現を調整しながら組み込んでください。「ターゲットキーワード」は基本的に全て記事内に組み込んでください。ただしそれによって過度に文章や話の流れが不自然になるようであれば、一部避けても構いません。
+      *   **サムネイル用キャッチコピー:** 記事の内容を要約し、クリックしたくなるような、短く（15文字以内が望ましい）て非常にキャッチーなコピーを1つ作成してください。これは記事タイトルとは別に、サムネイル画像に入れるためのものです。
+      *   **キーワードの組み込み:** 「ターゲットキーワード」を、本文や、特に見出し（##や###）に組み込んでください。「ターゲットキーワード」は全て記事内に組み込んでください。【※重要！】キーワードをそのまま使うと文章として不自然になることが多々あります。単語を並び替えたり、助詞を補ったりして、日本語として自然な文章にして組みこんでください。
       *   **フォーマット:** マークダウン形式を使用してください。
-      *   **分量:** 取り入れるべき「ターゲットキーワード」を自然な形で盛り込んだら簡単にまとめて記事を終わらせてください。記事の最後にさりげなく良かったらフォローしてください的な一言を添えてください。
+      *   **分量:** ある程度の分量を確保して、取り入れるべき「ターゲットキーワード」を全て盛り込んでください。最後に簡単にまとめて記事を終わらせてください。記事の最後にさりげなく良かったらフォローしてください的な一言を添えてください。
 
-      結果は、"title"と"content"をキーに持つ単一のJSONオブジェクトとして返却してください。contentには、タイトルを除いた、マークダウン形式の記事本文のみを含めてください。`,
+      結果は、"title"（記事タイトル）、"content"（マークダウン形式の記事本文）、"thumbnailCatchphrase"（サムネイル用キャッチコピー）をキーに持つ単一のJSONオブジェクトとして返却してください。contentには、タイトルを除いた本文のみを含めてください。`,
     config: {
       responseMimeType: "application/json",
       responseSchema: {
@@ -327,8 +329,9 @@ export const generateArticleForGroup = async (blogConcept: string, group: Keywor
         properties: {
           title: { type: Type.STRING },
           content: { type: Type.STRING },
+          thumbnailCatchphrase: { type: Type.STRING },
         },
-        required: ["title", "content"],
+        required: ["title", "content", "thumbnailCatchphrase"],
       },
     },
   });
@@ -345,7 +348,7 @@ export const generateArticleForGroup = async (blogConcept: string, group: Keywor
 export const generateThumbnailForArticle = async (title: string): Promise<string> => {
   const response = await ai.models.generateImages({
     model: 'imagen-4.0-generate-001',
-    prompt: `Create a pop and vibrant illustration-style background image for a blog article thumbnail. The theme should be related to "${title}". It is critical that the image contains absolutely NO TEXT, letters, or words. The style should be modern, clean, and engaging.`,
+    prompt: `「${title}」というテーマのブログ記事用サムネイルの背景画像を生成してください。画像は、シンプルな淡い色合いの壁紙にしてください。テーマに関連した小さなイラストを、画像の隅のいずれか一つに控えめに配置してください。最重要：後から文字を入れるため、中央には大きな空白スペースを必ず残してください。全体のスタイルはクリーンでミニマルに。【※最重要！】生成する画像には、いかなるテキスト、文字、単語も含めないでください。`,
     config: {
       numberOfImages: 1,
       outputMimeType: 'image/jpeg',

@@ -91,14 +91,14 @@ const KeywordGroupCard: React.FC<{
                   <span>Download Thumbnail</span>
                 </button>
                )}
-               {article && !article.thumbnailUrl && (
+               {article && (
                  <button
                    onClick={() => onGenerateThumbnail(group, article)}
                    disabled={isGeneratingThumbnail || isGeneratingArticle}
                    className="inline-flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 disabled:bg-teal-500/50 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-md transition duration-200"
                  >
-                   <PhotoIcon className="w-5 h-5" />
-                   <span>サムネイル画像を生成</span>
+                   {article.thumbnailUrl ? <ArrowPathIcon className="w-5 h-5" /> : <PhotoIcon className="w-5 h-5" />}
+                   <span>{article.thumbnailUrl ? 'サムネイル画像を再生成' : 'サムネイル画像を生成'}</span>
                  </button>
                )}
               <button

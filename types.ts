@@ -29,6 +29,7 @@ export interface KeywordGroup {
 export interface GeneratedArticle {
   title: string;
   content: string;
+  thumbnailCatchphrase: string;
   thumbnailUrl?: string;
 }
 
