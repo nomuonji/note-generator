@@ -1,0 +1,5 @@
+{
+  "name": "note記事作成（検索ボリューム担保）",
+  "description": "An advanced tool that takes a blog concept, generates a complete SEO content strategy with prioritized keyword groups, and writes high-quality articles using the Gemini API.",
+  "requestFramePermissions": []
+}
